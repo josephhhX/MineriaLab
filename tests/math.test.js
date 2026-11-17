@@ -7,3 +7,16 @@ test('correlación y métricas',()=>{assert.ok(Math.abs(pearson([1,2,3],[2,4,6])
 test('validación y calculadora',()=>{assert.equal(validAnswer('',0),false);assert.equal(validAnswer('1,23',1.234,2),true);assert.equal(validAnswer('abc',0),false);assert.equal(calculate('sqrt(9)+2^3'),11);assert.throws(()=>calculate('1/0'))})
 import {generate,topics,defaults} from '../src/generators/exercises.js'
 test('generadores producen respuestas finitas con distintas configuraciones',()=>{for(const topic of topics){for(let i=0;i<50;i++){const ex=generate(topic.id,{...defaults,rows:i%27+4,variables:i%4+2,categories:i%3+2,classes:i%2+2,laplace:i%2===0});assert.ok(ex.steps.length>0);for(const s of ex.steps)assert.ok(Number.isFinite(s.answer),`${topic.id}: ${s.label}`)}}})
+import {pearsonFormulas,matrixFormulas,bayesFormulas,binomialFormulas} from '../src/generators/formulas.js'
+const collectSlots=nodes=>nodes.flatMap(n=>n.type==='slot'?[n]:n.type==='fraction'?[...collectSlots(n.top),...collectSlots(n.bottom)]:n.type==='root'?collectSlots(n.body):n.type==='power'?[...collectSlots(n.base),...collectSlots(n.exponent)]:[])
+test('las casillas de las fórmulas corresponden a los datos generados',()=>{
+ const q=pearson([1,2,3],[2,4,6]);const formulas=pearsonFormulas([1,2,3],[2,4,6],q)
+ assert.deepEqual(collectSlots(formulas[0].parts).map(s=>s.value),[6,3])
+ assert.deepEqual(collectSlots(formulas[4].parts).map(s=>s.value),[q.num,q.den])
+ const m=metrics(40,50,10,20);const precision=matrixFormulas(40,50,10,20,m,5)[2]
+ assert.deepEqual(collectSlots(precision.parts).map(s=>s.value),[40,40,10])
+ const b=bayesFormulas([['V1','C1'],['V2','C2'],['V1','C1'],['V2','C2']],['C1','C2'],[2,2],['V1'],2,true)
+ assert.deepEqual(collectSlots(b[2].parts).map(s=>s.value),[2,4,2,2])
+ const more=binomialFormulas(10,.5,4,'más de',3,5)[2]
+ assert.ok(more.description.includes('k = 5'));assert.ok(collectSlots(more.parts).some(s=>s.label==='valor k'&&s.value===5))
+})
