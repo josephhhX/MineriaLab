@@ -5,3 +5,4 @@ export const pearson = (x,y) => {const mx=mean(x),my=mean(y);const dx=x.map(v=>v
 export const metrics = (tp,tn,fp,fn) => {const div=(a,b)=>b?a/b:0;const precision=div(tp,tp+fp),recall=div(tp,tp+fn);return {accuracy:div(tp+tn,tp+tn+fp+fn),precision,recall,specificity:div(tn,tn+fp),f1:div(2*precision*recall,precision+recall)}}
 export const validAnswer = (input, expected, decimals=2) => {if(typeof input!=='string'||!input.trim())return false; const value=Number(input.trim().replace(',','.')); return Number.isFinite(value)&&Math.abs(value-expected)<=(0.5*10**(-decimals)+1e-10)}
 
+export const validStep = (input, step, decimals=2) => step.type==='choice' ? typeof input==='string' && input!=='' && step.answers.includes(input) : validAnswer(input,step.answer,decimals)

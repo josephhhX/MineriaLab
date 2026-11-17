@@ -1,6 +1,6 @@
 import {useState,useEffect} from 'react'
 import {topics,defaults,generate} from './generators/exercises'
-import {validAnswer} from './utils/math'
+import {validStep} from './utils/math'
 import Exercise from './components/Exercise'
 import Calculator from './components/Calculator'
 import './App.css'
@@ -11,7 +11,7 @@ function App(){const [page,setPage]=useState('inicio'),[topic,setTopic]=useState
  useEffect(()=>{if(seconds===null||!exam||exam.finished)return;if(seconds<=0){const timer=setTimeout(()=>finishExam(),0);return()=>clearTimeout(timer)}const timer=setTimeout(()=>setSeconds(seconds-1),1000);return()=>clearTimeout(timer)},[seconds,exam]); // eslint-disable-line react-hooks/exhaustive-deps
  const update=(key,value)=>setConfig({...config,[key]:value,difficulty:'personalizada'});const preset=(value)=>{const p=value==='facil'?{rows:5,variables:2,categories:2,classes:2,n:6,metricCount:3}:value==='dificil'?{rows:18,variables:4,categories:3,classes:3,n:20,metricCount:5}:{rows:8,variables:2,categories:2,classes:2,n:10,metricCount:5};setConfig({...config,...p,difficulty:value})};
  const start=()=>{setExercise(generate(topic,config));setAnswers({});setMessage('');setPage('ejercicio')};const record=(item)=>setHistory(h=>[{...item,date:new Date().toISOString()},...h].slice(0,200));
- function finishExam(){if(!exam||exam.finished)return;const results=exam.items.map((ex,i)=>ex.steps.every((s,j)=>validAnswer(exam.answers[i]?.[j]||'',s.answer,exam.config.decimals)));const score=results.filter(Boolean).length/exam.items.length*10;record({type:'examen',score,correct:results.filter(Boolean).length,total:results.length,topic:exam.items[0].topic});setExam({...exam,finished:true,results,score});setSeconds(null)}
+ function finishExam(){if(!exam||exam.finished)return;const results=exam.items.map((ex,i)=>ex.steps.every((s,j)=>validStep(exam.answers[i]?.[j]||'',s,exam.config.decimals)));const score=results.filter(Boolean).length/exam.items.length*10;record({type:'examen',score,correct:results.filter(Boolean).length,total:results.length,topic:exam.items[0].topic});setExam({...exam,finished:true,results,score});setSeconds(null)}
  const startExam=()=>{if(!selected.length){setMessage('Selecciona al menos un tema.');return}const items=Array.from({length:Number(config.count)},(_,i)=>generate(selected[i%selected.length],config));setExam({items,answers:{},index:0,finished:false,config:{...config}});setSeconds(Number(minutes)>0?Number(minutes)*60:null);setMessage('');setPage('examen-activo')};
  const practiceHistory=history.filter(h=>h.type==='practica'),correct=practiceHistory.filter(h=>h.correct).length,rate=practiceHistory.length?Math.round(correct/practiceHistory.length*100):0;
  const nav=(id)=>{setPage(id);setMessage('')};
